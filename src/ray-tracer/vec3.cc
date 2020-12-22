@@ -14,5 +14,15 @@ namespace rt {
     {
         return unit_vector(randVecInUnitSphere());
     }
+
+    Vec3 Vec3::unitVector() const
+    {
+        return unit_vector(*this);
+    }
+
+    Vec3 Vec3::reflect(const Vec3& n) const
+    {
+        return *this - (2 * dot(*this, n) * n);
+    }
 }
 

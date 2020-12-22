@@ -1,10 +1,15 @@
+#include <cassert>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 #include <string>
+
 #include "Camera.h"
 #include "color.h"
 #include "HitList.h"
 #include "rtmath.h"
+#include "materials/Lambertian.h"
+#include "materials/Metallic.h"
 #include "shapes/sphere.h"
 
 using rt::Point3;
@@ -21,9 +26,15 @@ void usage() {
 rt::color::rgb ray_color(const rt::Ray& r, const rt::IHittable& world, unsigned depth) {
     rt::HitRecord rec;
     if (world.hit(r, 0.001, rt::infinity, rec)) {
-        // Hard-coded diffuse using random unit sphere approximation, bouncing `depth` times.
-        auto target = rec.p + rec.normal + rt::randUnitVector();
-        return 0.5 * ray_color(Ray(rec.p, target - rec.p), world, depth - 1);
+        Ray scattered;
+        rt::color::rgb attenuation;
+
+        // Scatter light, bouncing up to `depth` times.
+        if (rec.material && rec.material->scatter(r, rec, attenuation, scattered)) {
+            return attenuation * ray_color(scattered, world, depth - 1);
+        }
+
+        return rt::color::rgb(0, 0, 0);
 
         // Normal map to RGB
         //return 0.5 * (rec.normal + color::rgb(1, 1, 1));
@@ -41,8 +52,8 @@ rt::color::rgb ray_color(const rt::Ray& r, const rt::IHittable& world, unsigned 
 int main(int argc, char** argv)
 {
     // Todo: add a dials for these.
-    const unsigned samplesPerPx = 100;
-    const unsigned maxDepth = 50;
+    const unsigned samplesPerPx = 10;
+    const unsigned maxDepth = 5;
 
     /***** Parse Input *****/
     if (argc != 4) {
@@ -78,17 +89,24 @@ int main(int argc, char** argv)
 
     /***** Setup Scene *****/
     rt::HitList world;
-    world.add(std::make_shared<rt::shapes::Sphere>(Point3(0.0,    0.0, -1.0),   0.5));
-    world.add(std::make_shared<rt::shapes::Sphere>(Point3(0.0, -100.5, -1.0), 100.0));
+
+    auto material_ground = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.8, 0.8, 0.0));
+    auto material_center = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.7, 0.3, 0.3));
+    auto material_left = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.8, 0.8));
+    auto material_right = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.6, 0.2));
+
+    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0,    0.0, -1.0),   0.5, material_center));
+    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
     Camera camera(rt::Point3(0, 0, 0), imageWidth, imageHeight);
 
     /***** Render *****/
-
+    auto start = std::chrono::high_resolution_clock::now();
+    
     // Write header
-    outFile << "P3" << std::endl
-        << imageWidth << ' ' << imageHeight << std::endl
-        << "255" << std::endl;
+    outFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
 
     // Write contents
     for (int yIdx = imageHeight - 1; yIdx >= 0; --yIdx) {
@@ -106,5 +124,8 @@ int main(int argc, char** argv)
         }
     }
 
-    std::cout << std::endl << "Done" << std::endl;
+    std::cout << "\nDone\n";
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << "Total Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
 }

@@ -24,6 +24,12 @@ namespace rt {
 
         double length() const { return std::sqrt(length_squared()); }
         double length_squared() const { return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; }
+        bool nearZero() const {
+            const auto s = 1e-8;
+            return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) && (std::fabs(e[2]) < s);
+        }
+        Vec3 unitVector() const;
+        Vec3 reflect(const Vec3& n) const;
 
         inline static Vec3 random() {
             return Vec3(randDouble(), randDouble(), randDouble());

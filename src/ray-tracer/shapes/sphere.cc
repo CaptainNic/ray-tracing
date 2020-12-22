@@ -38,6 +38,7 @@ namespace shapes {
         rec.p = r.at(rec.t);
         auto outwardNormal = (rec.p - m_center) / m_radius;
         rec.setFaceNormal(r, outwardNormal);
+        rec.material = m_material;
     
         return true;
     }

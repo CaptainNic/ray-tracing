@@ -6,7 +6,7 @@ namespace color {
         // Translate to [0 - 255] range
         out << static_cast<int>(255.999 * px_color.x()) << ' '
             << static_cast<int>(255.999 * px_color.y()) << ' '
-            << static_cast<int>(255.999 * px_color.z()) << std::endl;
+            << static_cast<int>(255.999 * px_color.z()) << '\n';
     }
 
     void write(std::ostream& out, rgb px_color, int numSamples) {
@@ -29,7 +29,7 @@ namespace color {
 
         out << static_cast<int>(255.999 * rt::clamp(r, 0.0, 0.999)) << ' '
             << static_cast<int>(255.999 * rt::clamp(g, 0.0, 0.999)) << ' '
-            << static_cast<int>(255.999 * rt::clamp(b, 0.0, 0.999)) << std::endl;
+            << static_cast<int>(255.999 * rt::clamp(b, 0.0, 0.999)) << '\n';
     }
 } // namespace color
 } // namespace rt

@@ -3,5 +3,7 @@ add_executable(ray-tracer
     color.cc
     vec3.cc
     HitList.cc
+    materials/Lambertian.cc
+    materials/Metallic.cc
     shapes/sphere.cc
 )
