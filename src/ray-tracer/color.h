@@ -26,6 +26,12 @@ namespace color {
         g *= scale;
         b *= scale;
 
+        // We also do some gamma correction (gamma 2) by raising the color value
+        // by the power of 1/gamma. So, gamma 2 --> sqrt(value).
+        r = std::sqrt(r);
+        g = std::sqrt(g);
+        b = std::sqrt(b);
+
         out << static_cast<int>(255.999 * rtmath::clamp(r, 0.0, 0.999)) << ' '
             << static_cast<int>(255.999 * rtmath::clamp(g, 0.0, 0.999)) << ' '
             << static_cast<int>(255.999 * rtmath::clamp(b, 0.0, 0.999)) << std::endl;
