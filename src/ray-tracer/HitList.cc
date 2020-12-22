@@ -2,7 +2,7 @@
 
 #include "HitList.h"
 
-namespace rtmath {
+namespace rt {
     bool HitList::hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const {
         HitRecord tempRec;
         bool anyHits = false;

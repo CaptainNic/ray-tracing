@@ -2,10 +2,12 @@
 
 #include <iostream>
 #include "rtmath.h"
+#include "vec3.h"
 
+namespace rt {
 namespace color {
     // Alias for color data
-    using rgb = rtmath::Vec3;
+    using rgb = rt::Vec3;
  
     void write(std::ostream& out, rgb px_color) {
         // Translate to [0 - 255] range
@@ -32,8 +34,9 @@ namespace color {
         g = std::sqrt(g);
         b = std::sqrt(b);
 
-        out << static_cast<int>(255.999 * rtmath::clamp(r, 0.0, 0.999)) << ' '
-            << static_cast<int>(255.999 * rtmath::clamp(g, 0.0, 0.999)) << ' '
-            << static_cast<int>(255.999 * rtmath::clamp(b, 0.0, 0.999)) << std::endl;
+        out << static_cast<int>(255.999 * rt::clamp(r, 0.0, 0.999)) << ' '
+            << static_cast<int>(255.999 * rt::clamp(g, 0.0, 0.999)) << ' '
+            << static_cast<int>(255.999 * rt::clamp(b, 0.0, 0.999)) << std::endl;
     }
-}
+} // namespace color
+} // namespace rt

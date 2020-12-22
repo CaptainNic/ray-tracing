@@ -7,9 +7,9 @@
 #include "rtmath.h"
 #include "shapes/sphere.h"
 
-using rtmath::Point3;
-using rtmath::Vec3;
-using rtmath::Ray;
+using rt::Point3;
+using rt::Vec3;
+using rt::Ray;
 
 void usage() {
     std::cerr
@@ -18,11 +18,11 @@ void usage() {
         << std::endl;
 }
 
-color::rgb ray_color(const rtmath::Ray& r, const rtmath::IHittable& world, unsigned depth) {
-    rtmath::HitRecord rec;
-    if (world.hit(r, 0.001, rtmath::infinity, rec)) {
+rt::color::rgb ray_color(const rt::Ray& r, const rt::IHittable& world, unsigned depth) {
+    rt::HitRecord rec;
+    if (world.hit(r, 0.001, rt::infinity, rec)) {
         // Hard-coded diffuse using random unit sphere approximation, bouncing `depth` times.
-        auto target = rec.p + rec.normal + rtmath::randUnitVector();
+        auto target = rec.p + rec.normal + rt::randUnitVector();
         return 0.5 * ray_color(Ray(rec.p, target - rec.p), world, depth - 1);
 
         // Normal map to RGB
@@ -33,9 +33,9 @@ color::rgb ray_color(const rtmath::Ray& r, const rtmath::IHittable& world, unsig
     }
 
     // Linear blend on y from white -> purpleish.
-    auto unit_direction = rtmath::unit_vector(r.direction());
+    auto unit_direction = rt::unit_vector(r.direction());
     auto t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * color::rgb(1.0, 1.0, 1.0) + t * color::rgb(0.5, 0.1, 1.0);
+    return (1.0 - t) * rt::color::rgb(1.0, 1.0, 1.0) + t * rt::color::rgb(0.5, 0.1, 1.0);
 }
 
 int main(int argc, char** argv)
@@ -77,11 +77,11 @@ int main(int argc, char** argv)
     }
 
     /***** Setup Scene *****/
-    rtmath::HitList world;
+    rt::HitList world;
     world.add(std::make_shared<rtshapes::Sphere>(Point3(0.0,    0.0, -1.0),   0.5));
     world.add(std::make_shared<rtshapes::Sphere>(Point3(0.0, -100.5, -1.0), 100.0));
 
-    Camera camera(rtmath::Point3(0, 0, 0), imageWidth, imageHeight);
+    Camera camera(rt::Point3(0, 0, 0), imageWidth, imageHeight);
 
     /***** Render *****/
 
@@ -94,15 +94,15 @@ int main(int argc, char** argv)
     for (int yIdx = imageHeight - 1; yIdx >= 0; --yIdx) {
         std::cout << "\rScanlines remaining: " << yIdx << ' ' << std::flush;
         for (int xIdx = 0; xIdx < imageWidth; ++xIdx) {
-            color::rgb px_color(0, 0, 0);
+            rt::color::rgb px_color(0, 0, 0);
             for (int sample = 0; sample < samplesPerPx; ++sample) {
-                auto u = (xIdx + rtmath::randDouble()) / (imageWidth - 1);
-                auto v = (yIdx + rtmath::randDouble()) / (imageHeight - 1);
+                auto u = (xIdx + rt::randDouble()) / (imageWidth - 1);
+                auto v = (yIdx + rt::randDouble()) / (imageHeight - 1);
                 auto r = camera.getRay(u, v);
                 px_color += ray_color(r, world, maxDepth);
             }
 
-            color::write(outFile, px_color, samplesPerPx);
+            rt::color::write(outFile, px_color, samplesPerPx);
         }
     }
 

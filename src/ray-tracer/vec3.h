@@ -4,7 +4,7 @@
 #include <iostream>
 #include "rtmath.h"
 
-namespace rtmath {
+namespace rt {
     class Vec3
     {
     public:

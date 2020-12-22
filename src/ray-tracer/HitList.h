@@ -4,7 +4,7 @@
 #include <vector>
 #include "hittable.h"
 
-namespace rtmath {
+namespace rt {
     class HitList : public IHittable {
     public:
         HitList() {}

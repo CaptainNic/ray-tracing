@@ -2,7 +2,7 @@
 
 #include "ray.h"
 
-namespace rtmath {
+namespace rt {
     struct HitRecord {
         Point3 p;
         Vec3 normal;

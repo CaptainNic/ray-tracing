@@ -1,8 +1,8 @@
 #include "sphere.h"
 
-using rtmath::HitRecord;
-using rtmath::Ray;
-using rtmath::Vec3;
+using rt::HitRecord;
+using rt::Ray;
+using rt::Vec3;
 
 namespace rtshapes {
     bool Sphere::hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const {
@@ -16,7 +16,7 @@ namespace rtshapes {
         // sphere. We consider this a hit.
         Vec3 oc = r.origin() - m_center;
         auto a = r.direction().length_squared();
-        auto halfB = rtmath::dot(oc, r.direction());
+        auto halfB = rt::dot(oc, r.direction());
         auto c = oc.length_squared() - (m_radius * m_radius);
 
         auto discriminant = (halfB * halfB) - a * c;

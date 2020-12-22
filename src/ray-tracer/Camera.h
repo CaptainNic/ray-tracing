@@ -6,7 +6,7 @@
 
 class Camera {
 public:
-    Camera(rtmath::Point3& pos, double width, double height)
+    Camera(rt::Point3& pos, double width, double height)
         : m_origin(pos)
     {
         auto aspectRatio = width / height;
@@ -14,18 +14,18 @@ public:
         auto viewportWidth = aspectRatio * viewportHeight;
         auto focalLength = 1.0;
 
-        m_horizontal = rtmath::Vec3(viewportWidth, 0, 0);
-        m_vertical = rtmath::Vec3(0, viewportHeight, 0);
-        m_lowerLeft = m_origin - (m_horizontal/2) - (m_vertical/2) - rtmath::Vec3(0, 0, focalLength);
+        m_horizontal = rt::Vec3(viewportWidth, 0, 0);
+        m_vertical = rt::Vec3(0, viewportHeight, 0);
+        m_lowerLeft = m_origin - (m_horizontal/2) - (m_vertical/2) - rt::Vec3(0, 0, focalLength);
     }
 
-    rtmath::Ray getRay(double u, double v) const {
-        return rtmath::Ray(m_origin, m_lowerLeft + (u*m_horizontal) + (v*m_vertical) - m_origin);
+    rt::Ray getRay(double u, double v) const {
+        return rt::Ray(m_origin, m_lowerLeft + (u*m_horizontal) + (v*m_vertical) - m_origin);
     }
 
 private:
-    rtmath::Point3 m_origin;
-    rtmath::Point3 m_lowerLeft;
-    rtmath::Vec3 m_horizontal;
-    rtmath::Vec3 m_vertical;
+    rt::Point3 m_origin;
+    rt::Point3 m_lowerLeft;
+    rt::Vec3 m_horizontal;
+    rt::Vec3 m_vertical;
 };

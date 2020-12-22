@@ -1,6 +1,6 @@
 #include "vec3.h"
 
-namespace rtmath {
+namespace rt {
     Vec3 randVecInUnitSphere() {
         while (true) {
             auto p = Vec3::random(-1, 1);
