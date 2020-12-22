@@ -1,3 +1,6 @@
-add_executable(ray-tracer main.cc)
-
-target_include_directories(ray-tracer PUBLIC ../utils)
+add_executable(ray-tracer
+    main.cc
+    vec3.cc
+    HitList.cc
+    shapes/sphere.cc
+)
