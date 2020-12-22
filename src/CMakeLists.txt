@@ -1,1 +1,1 @@
-add_subdirectory(hello-ppm)
+add_subdirectory(ray-tracer)

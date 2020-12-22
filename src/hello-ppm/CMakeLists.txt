@@ -1,1 +1,0 @@
-add_executable(hello-ppm main.cc)
