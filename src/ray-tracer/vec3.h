@@ -63,5 +63,14 @@ namespace rtmath {
     /// </summary>
     /// <returns>A Vec3 within a unit sphere.</returns>
     Vec3 randVecInUnitSphere();
+
+    /// <summary>
+    /// Generates a random unit vector. Equivalent to
+    /// randVecInUnitSphere(), except the point is on the
+    /// surface of the unit sphere instead of anywhere
+    /// inside it.
+    /// </summary>
+    /// <returns>A random Vec3 unit vector.</returns>
+    Vec3 randUnitVector();
 }
 

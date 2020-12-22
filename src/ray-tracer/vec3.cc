@@ -9,5 +9,10 @@ namespace rtmath {
             }
         }
     }
+
+    Vec3 randUnitVector()
+    {
+        return unit_vector(randVecInUnitSphere());
+    }
 }
 

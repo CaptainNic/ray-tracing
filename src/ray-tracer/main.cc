@@ -22,7 +22,7 @@ color::rgb ray_color(const rtmath::Ray& r, const rtmath::IHittable& world, unsig
     rtmath::HitRecord rec;
     if (world.hit(r, 0.001, rtmath::infinity, rec)) {
         // Hard-coded diffuse using random unit sphere approximation, bouncing `depth` times.
-        auto target = rec.p + rec.normal + rtmath::randVecInUnitSphere();
+        auto target = rec.p + rec.normal + rtmath::randUnitVector();
         return 0.5 * ray_color(Ray(rec.p, target - rec.p), world, depth - 1);
 
         // Normal map to RGB
