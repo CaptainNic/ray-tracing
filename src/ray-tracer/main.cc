@@ -20,7 +20,7 @@ void usage() {
 
 color::rgb ray_color(const rtmath::Ray& r, const rtmath::IHittable& world, unsigned depth) {
     rtmath::HitRecord rec;
-    if (world.hit(r, 0, rtmath::infinity, rec)) {
+    if (world.hit(r, 0.001, rtmath::infinity, rec)) {
         // Hard-coded diffuse using random unit sphere approximation, bouncing `depth` times.
         auto target = rec.p + rec.normal + rtmath::randVecInUnitSphere();
         return 0.5 * ray_color(Ray(rec.p, target - rec.p), world, depth - 1);
