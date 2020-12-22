@@ -1,12 +1,16 @@
 #pragma once
 
+#include "../Material.h"
 #include "../hittable.h"
 #include "../vec3.h"
 
-namespace rtshapes {
+namespace rt {
+namespace shapes {
     class Sphere : public rt::IHittable {
     public:
-        Sphere(rt::Point3 cen, double r) : m_center(cen), m_radius(r) {};
+        Sphere(rt::Point3 cen, double r, std::shared_ptr<IMaterial> mat)
+            : m_center(cen), m_radius(r), m_material(mat)
+        {};
 
         virtual bool hit(const rt::Ray& r, double tMin, double tMax, rt::HitRecord& rec) const override;
 
@@ -16,5 +20,7 @@ namespace rtshapes {
     private:
         rt::Point3 m_center;
         double m_radius;
+        std::shared_ptr<IMaterial> m_material;
     };
-}
+} // namespace shapes
+} // namespace rt

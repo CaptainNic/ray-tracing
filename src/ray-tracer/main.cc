@@ -78,8 +78,8 @@ int main(int argc, char** argv)
 
     /***** Setup Scene *****/
     rt::HitList world;
-    world.add(std::make_shared<rtshapes::Sphere>(Point3(0.0,    0.0, -1.0),   0.5));
-    world.add(std::make_shared<rtshapes::Sphere>(Point3(0.0, -100.5, -1.0), 100.0));
+    world.add(std::make_shared<rt::shapes::Sphere>(Point3(0.0,    0.0, -1.0),   0.5));
+    world.add(std::make_shared<rt::shapes::Sphere>(Point3(0.0, -100.5, -1.0), 100.0));
 
     Camera camera(rt::Point3(0, 0, 0), imageWidth, imageHeight);
 

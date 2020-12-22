@@ -4,7 +4,8 @@ using rt::HitRecord;
 using rt::Ray;
 using rt::Vec3;
 
-namespace rtshapes {
+namespace rt {
+namespace shapes {
     bool Sphere::hit(const Ray& r, double tMin, double tMax, HitRecord& rec) const {
         // ax^2 + bx + c = 0    OR    x = (-b +- sqrt(b^2-4ac))/2a
         // As per the quadratic equation:
@@ -40,4 +41,5 @@ namespace rtshapes {
     
         return true;
     }
-}
+} // namespace shapes
+} // namespace rt

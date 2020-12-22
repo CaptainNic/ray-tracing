@@ -1,5 +1,7 @@
 #pragma once
 
+#include "color.h"
+
 namespace rt {
     class Ray;
     struct HitRecord;
@@ -9,7 +11,7 @@ namespace rt {
         virtual bool scatter(
             const Ray& input,
             const HitRecord& rec,
-            color::rgb& attentuation,
+            rt::color::rgb& attentuation,
             Ray& scattered) const = 0;
-    }
+    };
 }
