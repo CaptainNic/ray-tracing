@@ -5,6 +5,10 @@
 #include "ray.h"
 #include "vec3.h"
 
+using rtmath::point3;
+using rtmath::vec3;
+using rtmath::ray;
+
 void usage() {
     std::cerr
         << std::endl
@@ -12,7 +16,29 @@ void usage() {
         << std::endl;
 }
 
+bool hitSphere(const point3& center, double radius, const ray& r) {
+    // ax^2 + bx + c = 0    OR    x = (-b +- sqrt(b^2-4ac))/2a
+    // As per the quadratic equation:
+    // The discriminant (b^2 - 4ac) must be non-negative for there to be
+    // a solution since you can't get a real number by sqrt of a negative.
+    // Additionally, if the discriminant is 0, the ray hits the sphere in
+    // only one location, thus it is a tangent.
+    // If the discriminant is positive, the ray intersects 2 points of the
+    // sphere. We consider this a hit.
+    auto oc = r.origin() - center;
+    auto a = rtmath::dot(r.direction(), r.direction());
+    auto b = 2.0 * rtmath::dot(oc, r.direction());
+    auto c = rtmath::dot(oc, oc) - (radius * radius);
+    auto discriminant = (b * b) - (4 * a * c);
+    return (discriminant > 0);
+}
+
 color::rgb ray_color(const rtmath::ray& r) {
+    // If we hit the sphere, paint it red.
+    if (hitSphere(point3(0, 0, -1), 0.5, r)) {
+        return color::rgb(1, 0, 0);
+    }
+
     // Linear blend on y from white -> purpleish.
     auto unit_direction = rtmath::unit_vector(r.direction());
     auto t = 0.5 * (unit_direction.y() + 1.0);
@@ -28,8 +54,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    size_t imageWidth = 0;
-    size_t imageHeight = 0;
+    double imageWidth = 0.0;
+    double imageHeight = 0.0;
     try {
         imageWidth = std::stoi(argv[1]);
         imageHeight = std::stoi(argv[2]);
@@ -56,13 +82,16 @@ int main(int argc, char** argv)
     /***** Setup Camera *****/
     auto aspectRatio = imageWidth / imageHeight;
     auto viewportHeight = 2.0;
-    auto viewportWidth = 1;
+    auto viewportWidth = aspectRatio * viewportHeight;
     auto focalLength = 1.0;
 
     auto origin = rtmath::point3(0, 0, 0);
     auto horizontal = rtmath::vec3(viewportWidth, 0, 0);
     auto vertical = rtmath::vec3(0, viewportHeight, 0);
     auto lowerLeft = origin - (horizontal / 2) - (vertical / 2) - rtmath::vec3(0, 0, focalLength);
+
+    /***** Setup Scene *****/
+    // TBD...
 
     /***** Render *****/
 
