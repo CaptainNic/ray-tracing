@@ -1,8 +1,8 @@
-#include <cassert>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "Camera.h"
 #include "color.h"
@@ -49,11 +49,50 @@ rt::color::rgb ray_color(const rt::Ray& r, const rt::IHittable& world, unsigned 
     return (1.0 - t) * rt::color::rgb(1.0, 1.0, 1.0) + t * rt::color::rgb(0.5, 0.1, 1.0);
 }
 
+void renderPixels(
+    const unsigned imageWidth, const unsigned imageHeight,
+    const unsigned samplesPerPx, const unsigned maxDepth,
+    const rt::HitList& world, const Camera& camera,
+    std::vector<rt::color::rgb>& pxMap,
+    const unsigned yTop, const unsigned yBottom
+) {
+    // Render from top down
+    auto yPos = yTop - 1;
+    auto xPos = 0;
+    auto numPx = imageWidth * imageHeight;
+    
+    // Origin of PPM format is top left, but origin of scene is bottom left,
+    // so to render from the top down we need to convert from the scene's yPos
+    // to the PPM file's position.
+    auto start = numPx - yPos * imageWidth;
+    auto end = start + ((yPos - yBottom) * imageWidth);
+
+    for (auto idx = start; idx < end; ++idx) {
+        if (xPos == 0) {
+            std::cout << "\rScanlines remaining: " << yPos - yBottom - 1 << "     ";
+        }
+
+        for (auto sample = 0; sample < samplesPerPx; ++sample) {
+            auto u = (xPos + rt::randDouble()) / (imageWidth - 1);
+            auto v = (yPos + rt::randDouble()) / (imageHeight - 1);
+            auto r = camera.getRay(u, v);
+            pxMap[idx] += ray_color(r, world, maxDepth);
+        }
+
+        // Increment pixel position
+        ++xPos;
+        if (xPos == imageWidth) {
+            xPos = 0;
+            --yPos;
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     // Todo: add a dials for these.
-    const unsigned samplesPerPx = 10;
-    const unsigned maxDepth = 5;
+    const unsigned samplesPerPx = 1;
+    const unsigned maxDepth = 1;
 
     /***** Parse Input *****/
     if (argc != 4) {
@@ -104,28 +143,28 @@ int main(int argc, char** argv)
 
     /***** Render *****/
     auto start = std::chrono::high_resolution_clock::now();
-    
+
+    auto numPx = imageWidth * imageHeight;
+    auto pxMap = std::vector<rt::color::rgb>(numPx);
+    renderPixels(imageWidth, imageHeight, samplesPerPx, maxDepth, world, camera, pxMap, imageHeight, 0);
+
+    auto renderEnd = std::chrono::high_resolution_clock::now();
+
+    /***** Write to Disk *****/
+
     // Write header
     outFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
 
     // Write contents
-    for (int yIdx = imageHeight - 1; yIdx >= 0; --yIdx) {
-        std::cout << "\rScanlines remaining: " << yIdx << ' ' << std::flush;
-        for (int xIdx = 0; xIdx < imageWidth; ++xIdx) {
-            rt::color::rgb px_color(0, 0, 0);
-            for (int sample = 0; sample < samplesPerPx; ++sample) {
-                auto u = (xIdx + rt::randDouble()) / (imageWidth - 1);
-                auto v = (yIdx + rt::randDouble()) / (imageHeight - 1);
-                auto r = camera.getRay(u, v);
-                px_color += ray_color(r, world, maxDepth);
-            }
-
-            rt::color::write(outFile, px_color, samplesPerPx);
-        }
+    for (auto const& px: pxMap){
+        rt::color::write(outFile, px, samplesPerPx);
     }
 
     std::cout << "\nDone\n";
 
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Total Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+    std::cout
+        << "Render Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(renderEnd - start).count() << "ms" << std::endl
+        << "Write to Disk Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - renderEnd).count() << "ms" << std::endl
+        << "Total Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
 }
