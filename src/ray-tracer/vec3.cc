@@ -12,6 +12,16 @@ namespace rt {
         }
     }
 
+    Vec3 randVecInUnitDisk()
+    {
+        while (true) {
+            auto p = Vec3(randDouble(-1, 1), randDouble(-1, 1), 0);
+            if (p.length_squared() < 1) {
+                return p;
+            }
+        }
+    }
+
     Vec3 randUnitVector()
     {
         return unit_vector(randVecInUnitSphere());

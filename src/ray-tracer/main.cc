@@ -53,7 +53,7 @@ rt::color::rgb ray_color(const rt::Ray& r, const rt::IHittable& world, unsigned 
     // Linear blend on y from white -> purpleish.
     auto unit_direction = rt::unit_vector(r.direction());
     auto t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * rt::color::rgb(1.0, 1.0, 1.0) + t * rt::color::rgb(0.5, 0.1, 1.0);
+    return (1.0 - t) * rt::color::rgb(1.0, 1.0, 1.0) + t * rt::color::rgb(0.5, 0.7, 1.0);
 }
 
 typedef std::vector<rt::color::rgb> RenderChunk;
@@ -84,6 +84,65 @@ void renderPixels(
             --yPos;
         }
     }
+}
+
+class Scene {
+public:
+    Scene() :camera(Point3(0, 0, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 16.0 / 9.0, 60, 0, 1) {}
+
+    rt::HitList world;
+    Camera camera;
+};
+
+void createRandomScene(Scene& scene, double aspectRatio) {
+    auto groundMaterial = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.5, 0.5, 0.5));
+    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3(0, -1000, 0), 1000, groundMaterial));
+
+    // Generate random small spheres
+    for (auto a = -11; a < 11; a++) {
+        for (auto b = -11; b < 11; b++) {
+            auto chooseMaterial = rt::randDouble();
+            Point3 center(a + 0.9 * rt::randDouble(), 0.2, b + 0.9 * rt::randDouble());
+
+            if ((center - Point3(4, 0.2, 0)).length() > 0.9) {
+                std::shared_ptr<rt::IMaterial> sphereMat;
+
+                if (chooseMaterial < 0.8) {
+                    // diffuse
+                    auto albedo = rt::color::rgb::random() * rt::color::rgb::random();
+                    sphereMat = std::make_shared<rt::materials::Lambertian>(albedo);
+                } else if (chooseMaterial < 0.95) {
+                    // metal
+                    auto albedo = rt::color::rgb::random(0.5, 1);
+                    auto fuzz = rt::randDouble(0, 0.5);
+                    sphereMat = std::make_shared<rt::materials::Metallic>(albedo, fuzz);
+                } else {
+                    // glass
+                    sphereMat = std::make_shared<rt::materials::Dielectric>(1.5);
+                }
+
+                scene.world.add(std::make_shared<rt::shapes::Sphere>(center, 0.2, sphereMat));
+            }
+        }
+    }
+
+    // Generate non-random big spheres
+    auto mat1 = std::make_shared<rt::materials::Dielectric>(1.5);
+    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3( 0, 1, 0), 1.0, mat1));
+
+    auto mat2 = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.4, 0.2, 0.1));
+    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3(-4, 1, 0), 1.0, mat2));
+
+    auto mat3 = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.7, 0.6, 0.5), 0.0);
+    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3( 4, 1, 0), 1.0, mat3));
+
+    // Setup camera
+    Point3 lookFrom(13, 2, 3);
+    Point3 lookAt(0, 0, 0);
+    Vec3 viewUp(0, 1, 0);
+    auto focusDistance = 10.0;
+    auto aperture = 0.1;
+    scene.camera = Camera(lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance);
 }
 
 int main(int argc, char** argv)
@@ -126,23 +185,33 @@ int main(int argc, char** argv)
     }
 
     /***** Setup Scene *****/
-    rt::HitList world;
+    //rt::HitList world;
 
-    auto material_ground = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.8, 0.8, 0.0));
-    auto material_center = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.7, 0.3, 0.3));
-    auto material_left = std::make_shared<rt::materials::Dielectric>(1.5);
-    auto material_right = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.6, 0.2), 1.0);
+    //auto material_ground = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.8, 0.8, 0.0));
+    //auto material_center = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.7, 0.3, 0.3));
+    //auto material_left = std::make_shared<rt::materials::Dielectric>(1.5);
+    //auto material_right = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.6, 0.2), 1.0);
 
-    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0,    0.0, -1.0),   0.5, material_center));
+    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0, -100.5, -1.0), 100.0, material_ground));
+    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0,    0.0, -1.0),   0.5, material_center));
 
-    // "Hollow" glass sphere
-    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),   0.5, material_left));
-    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),  -0.4, material_left));
+    //// "Hollow" glass sphere
+    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),  -0.4, material_left));
 
-    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 1.0,    0.0, -1.0),   0.5, material_right));
+    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
-    Camera camera(rt::Point3(0, 0, 0), imageWidth, imageHeight);
+    //auto lookFrom = rt::Point3(3, 3, 2);
+    //auto lookAt = rt::Point3(0, 0, -1);
+    //auto viewUp = rt::Vec3(0, 1, 0);
+    //auto focusDistance = (lookFrom - lookAt).length();
+    //auto aperture = 0.2;
+    //auto aspectRatio = static_cast<double>(imageWidth) / static_cast<double>(imageHeight);
+    //Camera camera(lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance);
+
+    auto aspectRatio = static_cast<double>(imageWidth) / static_cast<double>(imageHeight);
+    Scene scene;
+    createRandomScene(scene, aspectRatio);
 
     /***** Render *****/
     auto start = std::chrono::high_resolution_clock::now();
@@ -168,7 +237,7 @@ int main(int argc, char** argv)
         auto numPx = (yTop - yBottom) * imageWidth;
         chunks[chunkNum] = std::make_shared<RenderChunk>(numPx);
         threadPool.emplace_back(std::thread(renderPixels, 
-            imageWidth, imageHeight, samplesPerPx, maxDepth, world, camera, chunks[chunkNum], yTop, yBottom));
+            imageWidth, imageHeight, samplesPerPx, maxDepth, scene.world, scene.camera, chunks[chunkNum], yTop, yBottom));
     }
 
     for (auto& thread : threadPool) {

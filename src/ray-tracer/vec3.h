@@ -74,6 +74,12 @@ namespace rt {
     Vec3 randVecInUnitSphere();
 
     /// <summary>
+    /// Generates a random vector within a unit disk on the x/y plane.
+    /// </summary>
+    /// <returns>A Vec3 within a unit disk on the x/y plane.</returns>
+    Vec3 randVecInUnitDisk();
+
+    /// <summary>
     /// Generates a random unit vector. Equivalent to
     /// randVecInUnitSphere(), except the point is on the
     /// surface of the unit sphere instead of anywhere
