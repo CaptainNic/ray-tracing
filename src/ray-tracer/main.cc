@@ -9,6 +9,7 @@
 #include "color.h"
 #include "HitList.h"
 #include "rtmath.h"
+#include "materials/Dielectric.h"
 #include "materials/Lambertian.h"
 #include "materials/Metallic.h"
 #include "shapes/sphere.h"
@@ -124,7 +125,7 @@ int main(int argc, char** argv)
 
     auto material_ground = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.8, 0.8, 0.0));
     auto material_center = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.7, 0.3, 0.3));
-    auto material_left = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.8, 0.8), 0.3);
+    auto material_left = std::make_shared<rt::materials::Dielectric>(rt::color::rgb(0.8, 0.8, 0.8), 1.5);
     auto material_right = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.6, 0.2), 1.0);
 
     world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0, -100.5, -1.0), 100.0, material_ground));

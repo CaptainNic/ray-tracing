@@ -4,6 +4,7 @@ add_executable(ray-tracer
     rtmath.cc
     vec3.cc
     HitList.cc
+    materials/Dielectric.cc
     materials/Lambertian.cc
     materials/Metallic.cc
     shapes/sphere.cc
