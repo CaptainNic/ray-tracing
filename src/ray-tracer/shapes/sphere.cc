@@ -31,7 +31,9 @@ namespace shapes {
         auto root = (-halfB - sqrtd) / a;
         if (root < tMin || root > tMax) {
             root = (-halfB + sqrtd) / a;
-            return root >= tMin && root <= tMax;
+            if (root < tMin || root > tMax) {
+                return false;
+            }
         }
 
         rec.t = root;
