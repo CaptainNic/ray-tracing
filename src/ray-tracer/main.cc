@@ -142,7 +142,6 @@ int main(int argc, char** argv)
     const unsigned threads = rt::clamp(numThreads, 1, imageHeight);
 
     // Round up to next full scan line so we don't skip rendering any lines due to uneven divison.
-    // renderPixels() will clamp lines to keep them in range, so the last thread may get a bit less work.
     const unsigned linesPerThread = (static_cast<double>(imageHeight) / threads) + 1;
     auto threadPool = std::vector<std::thread>(threads);
     auto chunks = std::vector<std::shared_ptr<RenderChunk>>(threads);
@@ -152,6 +151,7 @@ int main(int argc, char** argv)
         auto chunkNum = threads - i - 1;
         auto yTop = (linesPerThread * (i + 1));
         if (yTop > imageHeight) {
+            // The thread for the top chunk may get a bit less work.
             yTop = imageHeight;
         }
         auto yBottom = linesPerThread * i;
@@ -168,6 +168,7 @@ int main(int argc, char** argv)
     }
 
     auto renderEnd = std::chrono::high_resolution_clock::now();
+    std::cout << "Render Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(renderEnd - start).count() << "ms" << std::endl;
 
     /***** Write to Disk *****/
 
@@ -177,15 +178,14 @@ int main(int argc, char** argv)
     // Write contents
     for (auto chunkIter = chunks.cbegin(); chunkIter != chunks.cend(); ++chunkIter) {
         for (auto pxIter = (*chunkIter)->cbegin(); pxIter != (*chunkIter)->cend(); ++pxIter) {
+            // This is not a pure "write" function, it is also doing some post-processing before writing to disk.
             rt::color::write(outFile, *pxIter, samplesPerPx);
         }
     }
 
-    std::cout << "\nDone\n";
-
     auto end = std::chrono::high_resolution_clock::now();
     std::cout
-        << "Render Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(renderEnd - start).count() << "ms" << std::endl
         << "Write to Disk Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - renderEnd).count() << "ms" << std::endl
-        << "Total Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl;
+        << "Total Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << "ms" << std::endl
+        << "Done" << std::endl;
 }

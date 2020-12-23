@@ -1,6 +1,7 @@
 add_executable(ray-tracer
     main.cc
     color.cc
+    rtmath.cc
     vec3.cc
     HitList.cc
     materials/Lambertian.cc
