@@ -27,12 +27,17 @@ void usage() {
 
 rt::color::rgb ray_color(const rt::Ray& r, const rt::IHittable& world, unsigned depth) {
     rt::HitRecord rec;
+    
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    if (depth <= 0) {
+        return rt::color::rgb(0, 0, 0);
+    }
+
     if (world.hit(r, 0.001, rt::infinity, rec)) {
         Ray scattered;
         rt::color::rgb attenuation;
-
         // Scatter light, bouncing up to `depth` times.
-        if (rec.material && rec.material->scatter(r, rec, attenuation, scattered)) {
+        if (rec.material->scatter(r, rec, attenuation, scattered)) {
             return attenuation * ray_color(scattered, world, depth - 1);
         }
 
@@ -125,12 +130,16 @@ int main(int argc, char** argv)
 
     auto material_ground = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.8, 0.8, 0.0));
     auto material_center = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.7, 0.3, 0.3));
-    auto material_left = std::make_shared<rt::materials::Dielectric>(rt::color::rgb(0.8, 0.8, 0.8), 1.5);
+    auto material_left = std::make_shared<rt::materials::Dielectric>(1.5);
     auto material_right = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.6, 0.2), 1.0);
 
     world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0, -100.5, -1.0), 100.0, material_ground));
     world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0,    0.0, -1.0),   0.5, material_center));
+
+    // "Hollow" glass sphere
     world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),   0.5, material_left));
+    world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),  -0.4, material_left));
+
     world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 1.0,    0.0, -1.0),   0.5, material_right));
 
     Camera camera(rt::Point3(0, 0, 0), imageWidth, imageHeight);

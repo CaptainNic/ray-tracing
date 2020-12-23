@@ -36,7 +36,8 @@ namespace rt {
     }
 
     Vec3 Vec3::refract(const Vec3& n, double refractionRatio) const {
-        auto cosTheta = std::fmin((-*this).dot(n), 1.0);
+        auto inverse = -(*this);
+        auto cosTheta = std::fmin(inverse.dot(n), 1.0);
         auto rOutPerpendicular = refractionRatio * (*this + (cosTheta * n));
         auto rOutParallel = -std::sqrt(std::fabs(1.0 - rOutPerpendicular.length_squared())) * n;
         return rOutPerpendicular + rOutParallel;

@@ -11,19 +11,18 @@ namespace materials {
         attenuation = color::rgb(1.0, 1.0, 1.0);
 
         // Ratio is flipped depending on if we're entering or leaving the material.
-        double refractionRatio = rec.frontFace ? (1.0 / m_refractionIndex) : m_refractionIndex;
+        const double refractionRatio = rec.frontFace ? (1.0 / m_refractionIndex) : m_refractionIndex;
 
-        auto unitDirection = in.direction().unitVector();
-        auto cosTheta = std::fmin((-unitDirection).dot(rec.normal), 1.0);
-        auto sinTheta = std::sqrt(1.0 - cosTheta * cosTheta);
-        
+        const auto unitDirection = in.direction().unitVector();
+        const auto cosTheta = std::fmin(dot(-unitDirection, rec.normal), 1.0);
+        const auto sinTheta = std::sqrt(1.0 - (cosTheta * cosTheta));
 
-        // Check if refraction is possible (ratio * sin(theta) <= 1.0), then
-        // simulate real glass at high angles reflection.
-        bool shouldReflect = (refractionRatio * sinTheta > 1.0)
-            || (reflectance(cosTheta, refractionRatio) > randDouble());
+        // No solution to the refraction equation if the value is over 1.
+        bool cannotRefract = (refractionRatio * sinTheta > 1.0);
 
-        Vec3 direction;
+        // Real glass acts like a mirror at high angles, so simulate that here.
+        bool shouldReflect = cannotRefract || (reflectance(cosTheta, refractionRatio) > randDouble());
+
         if (shouldReflect) {
             // Refraction impossible, so we reflect.
             auto reflected = unitDirection.reflect(rec.normal);
