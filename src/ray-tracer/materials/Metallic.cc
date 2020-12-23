@@ -10,6 +10,12 @@ namespace materials {
     {
         // Metallic scattering is a reflection on the normal
         auto reflected = in.direction().unitVector().reflect(rec.normal);
+        
+        // Add fuzz
+        if (m_fuzz > 0) {
+            reflected += m_fuzz * randVecInUnitSphere();
+        }
+
         scattered = Ray(rec.p, reflected);
         attenuation = m_albedo;
 
