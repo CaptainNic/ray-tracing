@@ -21,6 +21,8 @@ namespace rt {
         Vec3& operator+=(const Vec3& v) { e[0] += v[0]; e[1] += v[1]; e[2] += v[2]; return *this; }
         Vec3& operator*=(const double t) { e[0] *= t; e[1] *= t; e[2] *= t; return *this; }
         Vec3& operator/=(const double t) { return *this *= 1/t; }
+        double dot(const Vec3& v) const;
+        Vec3 cross(const Vec3& v) const;
 
         double length() const { return std::sqrt(length_squared()); }
         double length_squared() const { return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; }
@@ -30,6 +32,7 @@ namespace rt {
         }
         Vec3 unitVector() const;
         Vec3 reflect(const Vec3& n) const;
+        Vec3 refract(const Vec3& n, double refractionRatio) const;
 
         inline static Vec3 random() {
             return Vec3(randDouble(), randDouble(), randDouble());

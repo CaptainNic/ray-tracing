@@ -1,5 +1,7 @@
 #include "vec3.h"
 
+#include <cmath>
+
 namespace rt {
     Vec3 randVecInUnitSphere() {
         while (true) {
@@ -20,9 +22,24 @@ namespace rt {
         return unit_vector(*this);
     }
 
+    double Vec3::dot(const Vec3& v) const {
+        return rt::dot(*this, v);
+    }
+
+    Vec3 Vec3::cross(const Vec3& v) const {
+        return rt::cross(*this, v);
+    }
+
     Vec3 Vec3::reflect(const Vec3& n) const
     {
-        return *this - (2 * dot(*this, n) * n);
+        return *this - (2 * this->dot(n) * n);
+    }
+
+    Vec3 Vec3::refract(const Vec3& n, double refractionRatio) const {
+        auto cosTheta = std::fmin((-*this).dot(n), 1.0);
+        auto rOutPerpendicular = refractionRatio * (*this + (cosTheta * n));
+        auto rOutParallel = -std::sqrt(std::fabs(1.0 - rOutPerpendicular.length_squared())) * n;
+        return rOutPerpendicular + rOutParallel;
     }
 }
 
