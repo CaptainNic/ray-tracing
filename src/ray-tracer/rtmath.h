@@ -12,7 +12,9 @@ namespace rt {
     class RNG {
     public:
         RNG() {
+            std::random_device rd;
             m_dist = std::uniform_real_distribution<Unit>(min, max);
+            m_gen = std::mt19937{ rd() };
         }
 
         double generate() { return m_dist(m_gen); }
