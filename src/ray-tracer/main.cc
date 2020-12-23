@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "Camera.h"
@@ -49,34 +50,25 @@ rt::color::rgb ray_color(const rt::Ray& r, const rt::IHittable& world, unsigned 
     return (1.0 - t) * rt::color::rgb(1.0, 1.0, 1.0) + t * rt::color::rgb(0.5, 0.1, 1.0);
 }
 
+typedef std::vector<rt::color::rgb> RenderChunk;
+
 void renderPixels(
     const unsigned imageWidth, const unsigned imageHeight,
     const unsigned samplesPerPx, const unsigned maxDepth,
     const rt::HitList& world, const Camera& camera,
-    std::vector<rt::color::rgb>& pxMap,
+    std::shared_ptr<RenderChunk> pxMap,
     const unsigned yTop, const unsigned yBottom
 ) {
     // Render from top down
-    auto yPos = yTop - 1;
+    auto yPos = yTop;
     auto xPos = 0;
-    auto numPx = imageWidth * imageHeight;
-    
-    // Origin of PPM format is top left, but origin of scene is bottom left,
-    // so to render from the top down we need to convert from the scene's yPos
-    // to the PPM file's position.
-    auto start = numPx - yPos * imageWidth;
-    auto end = start + ((yPos - yBottom) * imageWidth);
 
-    for (auto idx = start; idx < end; ++idx) {
-        if (xPos == 0) {
-            std::cout << "\rScanlines remaining: " << yPos - yBottom - 1 << "     ";
-        }
-
+    for (auto iter = pxMap->begin(); iter != pxMap->end(); ++iter) {
         for (auto sample = 0; sample < samplesPerPx; ++sample) {
             auto u = (xPos + rt::randDouble()) / (imageWidth - 1);
             auto v = (yPos + rt::randDouble()) / (imageHeight - 1);
             auto r = camera.getRay(u, v);
-            pxMap[idx] += ray_color(r, world, maxDepth);
+            *iter += ray_color(r, world, maxDepth);
         }
 
         // Increment pixel position
@@ -91,8 +83,9 @@ void renderPixels(
 int main(int argc, char** argv)
 {
     // Todo: add a dials for these.
-    const unsigned samplesPerPx = 1;
-    const unsigned maxDepth = 1;
+    const unsigned samplesPerPx = 100;
+    const unsigned maxDepth = 50;
+    const unsigned numThreads = 16;
 
     /***** Parse Input *****/
     if (argc != 4) {
@@ -101,8 +94,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    double imageWidth = 0.0;
-    double imageHeight = 0.0;
+    unsigned imageWidth = 0;
+    unsigned imageHeight = 0;
     try {
         imageWidth = std::stoi(argv[1]);
         imageHeight = std::stoi(argv[2]);
@@ -143,10 +136,36 @@ int main(int argc, char** argv)
 
     /***** Render *****/
     auto start = std::chrono::high_resolution_clock::now();
+    
+    // We clamp the thread count to imageHeight because we can't
+    // split a single scan line over multiple threads at the moment.
+    const unsigned threads = rt::clamp(numThreads, 1, imageHeight);
 
-    auto numPx = imageWidth * imageHeight;
-    auto pxMap = std::vector<rt::color::rgb>(numPx);
-    renderPixels(imageWidth, imageHeight, samplesPerPx, maxDepth, world, camera, pxMap, imageHeight, 0);
+    // Round up to next full scan line so we don't skip rendering any lines due to uneven divison.
+    // renderPixels() will clamp lines to keep them in range, so the last thread may get a bit less work.
+    const unsigned linesPerThread = (static_cast<double>(imageHeight) / threads) + 1;
+    auto threadPool = std::vector<std::thread>(threads);
+    auto chunks = std::vector<std::shared_ptr<RenderChunk>>(threads);
+
+    // Render each set of lines in a separate thread, startin from the top.
+    for (auto i = 0; i < threads; ++i) {
+        auto chunkNum = threads - i - 1;
+        auto yTop = (linesPerThread * (i + 1));
+        if (yTop > imageHeight) {
+            yTop = imageHeight;
+        }
+        auto yBottom = linesPerThread * i;
+        auto numPx = (yTop - yBottom) * imageWidth;
+        chunks[chunkNum] = std::make_shared<RenderChunk>(numPx);
+        threadPool.emplace_back(std::thread(renderPixels, 
+            imageWidth, imageHeight, samplesPerPx, maxDepth, world, camera, chunks[chunkNum], yTop, yBottom));
+    }
+
+    for (auto& thread : threadPool) {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
 
     auto renderEnd = std::chrono::high_resolution_clock::now();
 
@@ -156,8 +175,10 @@ int main(int argc, char** argv)
     outFile << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
 
     // Write contents
-    for (auto const& px: pxMap){
-        rt::color::write(outFile, px, samplesPerPx);
+    for (auto chunkIter = chunks.cbegin(); chunkIter != chunks.cend(); ++chunkIter) {
+        for (auto pxIter = (*chunkIter)->cbegin(); pxIter != (*chunkIter)->cend(); ++pxIter) {
+            rt::color::write(outFile, *pxIter, samplesPerPx);
+        }
     }
 
     std::cout << "\nDone\n";
