@@ -10,7 +10,7 @@ namespace materials {
     {
         // Lambertian (diffuse) scattering can scatter in one of two ways:
         // 1. scatter and attenuate by it's reflectance R
-        // 2. scatter w/o attentuation but absorb (1-R) of the rays
+        // 2. scatter w/o attenuation but absorb (1-R) of the rays
         // 3. A mixture of 1 and 2
 
         // Potential that this ends up being 0 if vectors are inverse of each other.
@@ -20,7 +20,7 @@ namespace materials {
             scatterDir = rec.normal;
         }
 
-        scattered = Ray(rec.p, scatterDir);
+        scattered = Ray(rec.p, scatterDir, in.time());
         attenuation = m_albedo;
 
         return true;

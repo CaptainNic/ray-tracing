@@ -16,7 +16,7 @@ namespace materials {
             reflected += m_fuzz * randVecInUnitSphere();
         }
 
-        scattered = Ray(rec.p, reflected);
+        scattered = Ray(rec.p, reflected, in.time());
         attenuation = m_albedo;
 
         return (dot(scattered.direction(), rec.normal) > 0);

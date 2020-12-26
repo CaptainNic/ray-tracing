@@ -14,7 +14,9 @@ namespace rt {
             double aspectRatio,
             double verticalFov,
             double aperture,
-            double focusDistance)
+            double focusDistance,
+            double timeStart = 0.0,
+            double timeEnd = 0.0)
         {
             // Setup viewport
             auto theta = rt::deg2rad(verticalFov);
@@ -32,6 +34,8 @@ namespace rt {
             m_lowerLeft = m_origin - (m_horizontal/2) - (m_vertical/2) - (focusDistance * m_w);
 
             m_lensRadius = aperture / 2;
+            m_timeStart = timeStart;
+            m_timeEnd = timeEnd;
         }
 
         rt::Ray getRay(double s, double t) const {
@@ -42,7 +46,8 @@ namespace rt {
 
             return rt::Ray(
                 m_origin + offset,
-                m_lowerLeft + (s * m_horizontal) + (t * m_vertical) - m_origin - offset);
+                m_lowerLeft + (s * m_horizontal) + (t * m_vertical) - m_origin - offset,
+                randDouble(m_timeStart, m_timeEnd));
         }
 
     private:
@@ -54,6 +59,10 @@ namespace rt {
         rt::Vec3 m_v;
         rt::Vec3 m_w;
         double m_lensRadius;
+
+        // Shutter open/close times
+        double m_timeStart;
+        double m_timeEnd;
     };
 
 }

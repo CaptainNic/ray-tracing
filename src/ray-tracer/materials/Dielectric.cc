@@ -26,10 +26,10 @@ namespace materials {
         if (shouldReflect) {
             // Refraction impossible, so we reflect.
             auto reflected = unitDirection.reflect(rec.normal);
-            scattered = Ray(rec.p, reflected);
+            scattered = Ray(rec.p, reflected, in.time());
         } else {
             auto refracted = unitDirection.refract(rec.normal, refractionRatio);
-            scattered = Ray(rec.p, refracted);
+            scattered = Ray(rec.p, refracted, in.time());
         }
 
         return true;

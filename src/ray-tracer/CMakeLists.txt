@@ -7,5 +7,6 @@ add_executable(ray-tracer
     materials/Dielectric.cc
     materials/Lambertian.cc
     materials/Metallic.cc
+    shapes/MovingSphere.cc
     shapes/sphere.cc
 )

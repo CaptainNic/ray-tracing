@@ -12,6 +12,7 @@
 #include "materials/Dielectric.h"
 #include "materials/Lambertian.h"
 #include "materials/Metallic.h"
+#include "shapes/MovingSphere.h"
 #include "shapes/sphere.h"
 
 using rt::Point3;
@@ -88,13 +89,13 @@ void renderPixels(
 
 class Scene {
 public:
-    Scene() :camera(Point3(0, 0, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 16.0 / 9.0, 60, 0, 1) {}
+    Scene() : camera(Point3(0, 0, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 16.0 / 9.0, 60, 0, 1) {}
 
     rt::HitList world;
     rt::Camera camera;
 };
 
-void createRandomScene(Scene& scene, double aspectRatio) {
+void createRandomScene(Scene& scene, double aspectRatio, double timeStart = 0.0, double timeEnd = 0.0) {
     auto groundMaterial = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.5, 0.5, 0.5));
     scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3(0, -1000, 0), 1000, groundMaterial));
 
@@ -111,17 +112,20 @@ void createRandomScene(Scene& scene, double aspectRatio) {
                     // diffuse
                     auto albedo = rt::color::rgb::random() * rt::color::rgb::random();
                     sphereMat = std::make_shared<rt::materials::Lambertian>(albedo);
+                    auto centerEnd = center + Vec3(0, rt::randDouble(0, 0.5), 0);
+                    scene.world.add(std::make_shared<rt::shapes::MovingSphere>(
+                        center, centerEnd, 0.0, 1.0, 0.2, sphereMat));
                 } else if (chooseMaterial < 0.95) {
                     // metal
                     auto albedo = rt::color::rgb::random(0.5, 1);
                     auto fuzz = rt::randDouble(0, 0.5);
                     sphereMat = std::make_shared<rt::materials::Metallic>(albedo, fuzz);
+                    scene.world.add(std::make_shared<rt::shapes::Sphere>(center, 0.2, sphereMat));
                 } else {
                     // glass
                     sphereMat = std::make_shared<rt::materials::Dielectric>(1.5);
+                    scene.world.add(std::make_shared<rt::shapes::Sphere>(center, 0.2, sphereMat));
                 }
-
-                scene.world.add(std::make_shared<rt::shapes::Sphere>(center, 0.2, sphereMat));
             }
         }
     }
@@ -142,7 +146,8 @@ void createRandomScene(Scene& scene, double aspectRatio) {
     Vec3 viewUp(0, 1, 0);
     auto focusDistance = 10.0;
     auto aperture = 0.1;
-    scene.camera = rt::Camera(lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance);
+    scene.camera = rt::Camera(
+        lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance, timeStart, timeEnd);
 }
 
 int main(int argc, char** argv)
@@ -211,7 +216,7 @@ int main(int argc, char** argv)
 
     auto aspectRatio = static_cast<double>(imageWidth) / static_cast<double>(imageHeight);
     Scene scene;
-    createRandomScene(scene, aspectRatio);
+    createRandomScene(scene, aspectRatio, 0.0, 1.0);
 
     /***** Render *****/
     auto start = std::chrono::high_resolution_clock::now();
