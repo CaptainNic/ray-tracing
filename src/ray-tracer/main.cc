@@ -61,7 +61,7 @@ typedef std::vector<rt::color::rgb> RenderChunk;
 void renderPixels(
     const unsigned imageWidth, const unsigned imageHeight,
     const unsigned samplesPerPx, const unsigned maxDepth,
-    const rt::HitList& world, const Camera& camera,
+    const rt::HitList& world, const rt::Camera& camera,
     std::shared_ptr<RenderChunk> pxMap,
     const unsigned yTop, const unsigned yBottom
 ) {
@@ -91,7 +91,7 @@ public:
     Scene() :camera(Point3(0, 0, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 16.0 / 9.0, 60, 0, 1) {}
 
     rt::HitList world;
-    Camera camera;
+    rt::Camera camera;
 };
 
 void createRandomScene(Scene& scene, double aspectRatio) {
@@ -142,7 +142,7 @@ void createRandomScene(Scene& scene, double aspectRatio) {
     Vec3 viewUp(0, 1, 0);
     auto focusDistance = 10.0;
     auto aperture = 0.1;
-    scene.camera = Camera(lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance);
+    scene.camera = rt::Camera(lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance);
 }
 
 int main(int argc, char** argv)
