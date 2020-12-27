@@ -1,3 +1,7 @@
+#pragma once
+#include <functional>
+#include <unordered_map>
+
 #include "Camera.h"
 #include "color.h"
 #include "HitList.h"
@@ -8,7 +12,7 @@
 #include "shapes/MovingSphere.h"
 #include "shapes/sphere.h"
 #include "textures/Checkered.h"
-
+#include "textures/Noise.h"
 
 class Scene {
 public:
@@ -77,4 +81,57 @@ public:
         camera = rt::Camera(
             lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance, timeStart, timeEnd);
     }
+};
+
+class TwoSpheres : public Scene {
+public:
+    TwoSpheres(double aspectRatio, double timeStart = 0.0, double timeEnd = 0.0) {
+        auto tex = std::make_shared<rt::textures::Checkered>(
+            rt::color::rgb(0.2, 0.3, 0.1),
+            rt::color::rgb(0.9, 0.9, 0.9));
+        auto material = std::make_shared<rt::materials::Lambertian>(tex);
+        world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(0, -10, 0), 10, material));
+        world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(0,  10, 0), 10, material));
+
+        // Setup camera
+        rt::Point3 lookFrom(13.0, 2.0, 3.0);
+        rt::Point3 lookAt(0.0, 0.0, 0.0);
+        rt::Vec3 viewUp(0.0, 1.0, 0.0);
+        auto focusDistance = 10.0;
+        auto aperture = 0.1;
+        auto vfov = 20.0;
+        camera = rt::Camera(lookFrom, lookAt, viewUp, aspectRatio, vfov, aperture, focusDistance, 0.0, 1.0);
+    }
+};
+
+class TwoPerlinSpheres : public Scene {
+public:
+    TwoPerlinSpheres(double aspectRatio, double timeStart = 0.0, double timeEnd = 0.0) {
+        auto tex = std::make_shared<rt::textures::Noise>(4.0);
+
+        world.add(std::make_shared<rt::shapes::Sphere>(
+            rt::Point3(0, -1000, 0), 1000,
+            std::make_shared<rt::materials::Lambertian>(tex)));
+
+        world.add(std::make_shared<rt::shapes::Sphere>(
+            rt::Point3(0, 2, 0), 2,
+            std::make_shared<rt::materials::Lambertian>(tex)));
+
+        // Setup camera
+        rt::Point3 lookFrom(13.0, 2.0, 3.0);
+        rt::Point3 lookAt(0.0, 0.0, 0.0);
+        rt::Vec3 viewUp(0.0, 1.0, 0.0);
+        auto focusDistance = 10.0;
+        auto aperture = 0.1;
+        auto vfov = 20.0;
+        camera = rt::Camera(lookFrom, lookAt, viewUp, aspectRatio, vfov, aperture, focusDistance, 0.0, 1.0);
+    }
+};
+
+using SceneConstructor = std::function<Scene(double, double, double)>;
+
+std::unordered_map<unsigned, SceneConstructor> SceneSelector = {
+    {0, [](double ar, double t0, double t1) { return RandomScene(ar, t0, t1); } },
+    {1, [](double ar, double t0, double t1) { return TwoSpheres(ar, t0, t1); } },
+    {2, [](double ar, double t0, double t1) { return TwoPerlinSpheres(ar, t0, t1); } }
 };

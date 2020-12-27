@@ -87,33 +87,39 @@ void renderPixels(
 int main(int argc, char** argv)
 {
     // Todo: add a dials for these.
-    const unsigned samplesPerPx = 100;
+    const unsigned samplesPerPx = 10;
     const unsigned maxDepth = 50;
     const unsigned numThreads = 16;
 
     /***** Parse Input *****/
-    if (argc != 4) {
-        std::cerr << "Expected 3 args, got " << argc - 1 << std::endl;
+    if (argc != 5) {
+        std::cerr << "Expected 4 args, got " << argc - 1 << std::endl;
         usage();
         return -1;
     }
 
     unsigned imageWidth = 0;
     unsigned imageHeight = 0;
+    int sceneSelect = -1;
     try {
         imageWidth = std::stoi(argv[1]);
         imageHeight = std::stoi(argv[2]);
         if (imageWidth == 0 || imageHeight == 0) {
             throw std::range_error("Width and Height must each be greater than zero.");
         }
+
+        sceneSelect = std::stoi(argv[3]);
+        if (sceneSelect <= 0) {
+            throw std::range_error("SceneSelect must be a number greater than zero.");
+        }
     }
     catch (const std::exception& ex) {
-        std::cerr << "Failed to parse width and height: " << ex.what() << std::endl;
+        std::cerr << "Failed to parse arguments: " << ex.what() << std::endl;
         usage();
         return -1;
     }
 
-    std::string filePath = argv[3];
+    std::string filePath = argv[4];
 
     // Overwrite contents if exists
     auto outFile = std::ofstream(filePath, std::ios::out | std::ios::trunc);
@@ -125,7 +131,7 @@ int main(int argc, char** argv)
 
     /***** Setup Scene *****/
     auto aspectRatio = static_cast<double>(imageWidth) / static_cast<double>(imageHeight);
-    Scene scene = RandomScene(aspectRatio, 0.0, 1.0);
+    Scene scene = SceneSelector.at(sceneSelect)(aspectRatio, 0.0, 1.0);
 
     /***** Render *****/
     auto start = std::chrono::high_resolution_clock::now();
