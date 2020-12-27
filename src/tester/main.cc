@@ -19,7 +19,7 @@ using rt::Ray;
 void usage() {
     std::cerr
         << std::endl
-        << "Usage: ray-tracer.exe <width> <height> <outFile>" << std::endl
+        << "Usage: ray-tracer.exe <width> <height> <scene#> <outFile>" << std::endl
         << std::endl;
 }
 
@@ -87,7 +87,7 @@ void renderPixels(
 int main(int argc, char** argv)
 {
     // Todo: add a dials for these.
-    const unsigned samplesPerPx = 10;
+    const unsigned samplesPerPx = 100;
     const unsigned maxDepth = 50;
     const unsigned numThreads = 16;
 
