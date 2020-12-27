@@ -21,7 +21,7 @@ namespace materials {
         }
 
         scattered = Ray(rec.p, scatterDir, in.time());
-        attenuation = m_albedo;
+        attenuation = m_albedo->value(rec.u, rec.v, rec.p);
 
         return true;
     }

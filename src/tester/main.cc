@@ -9,11 +9,8 @@
 #include "color.h"
 #include "HitList.h"
 #include "rtmath.h"
-#include "materials/Dielectric.h"
-#include "materials/Lambertian.h"
-#include "materials/Metallic.h"
-#include "shapes/MovingSphere.h"
-#include "shapes/sphere.h"
+
+#include "SceneSelector.h"
 
 using rt::Point3;
 using rt::Vec3;
@@ -87,69 +84,6 @@ void renderPixels(
     }
 }
 
-class Scene {
-public:
-    Scene() : camera(Point3(0, 0, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 16.0 / 9.0, 60, 0, 1) {}
-
-    rt::HitList world;
-    rt::Camera camera;
-};
-
-void createRandomScene(Scene& scene, double aspectRatio, double timeStart = 0.0, double timeEnd = 0.0) {
-    auto groundMaterial = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.5, 0.5, 0.5));
-    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3(0, -1000, 0), 1000, groundMaterial));
-
-    // Generate random small spheres
-    for (auto a = -11; a < 11; a++) {
-        for (auto b = -11; b < 11; b++) {
-            auto chooseMaterial = rt::randDouble();
-            Point3 center(a + 0.9 * rt::randDouble(), 0.2, b + 0.9 * rt::randDouble());
-
-            if ((center - Point3(4, 0.2, 0)).length() > 0.9) {
-                std::shared_ptr<rt::IMaterial> sphereMat;
-
-                if (chooseMaterial < 0.8) {
-                    // diffuse
-                    auto albedo = rt::color::rgb::random() * rt::color::rgb::random();
-                    sphereMat = std::make_shared<rt::materials::Lambertian>(albedo);
-                    auto centerEnd = center + Vec3(0, rt::randDouble(0, 0.5), 0);
-                    scene.world.add(std::make_shared<rt::shapes::MovingSphere>(
-                        center, centerEnd, 0.0, 1.0, 0.2, sphereMat));
-                } else if (chooseMaterial < 0.95) {
-                    // metal
-                    auto albedo = rt::color::rgb::random(0.5, 1);
-                    auto fuzz = rt::randDouble(0, 0.5);
-                    sphereMat = std::make_shared<rt::materials::Metallic>(albedo, fuzz);
-                    scene.world.add(std::make_shared<rt::shapes::Sphere>(center, 0.2, sphereMat));
-                } else {
-                    // glass
-                    sphereMat = std::make_shared<rt::materials::Dielectric>(1.5);
-                    scene.world.add(std::make_shared<rt::shapes::Sphere>(center, 0.2, sphereMat));
-                }
-            }
-        }
-    }
-
-    // Generate non-random big spheres
-    auto mat1 = std::make_shared<rt::materials::Dielectric>(1.5);
-    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3( 0, 1, 0), 1.0, mat1));
-
-    auto mat2 = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.4, 0.2, 0.1));
-    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3(-4, 1, 0), 1.0, mat2));
-
-    auto mat3 = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.7, 0.6, 0.5), 0.0);
-    scene.world.add(std::make_shared<rt::shapes::Sphere>(Point3( 4, 1, 0), 1.0, mat3));
-
-    // Setup camera
-    Point3 lookFrom(13, 2, 3);
-    Point3 lookAt(0, 0, 0);
-    Vec3 viewUp(0, 1, 0);
-    auto focusDistance = 10.0;
-    auto aperture = 0.1;
-    scene.camera = rt::Camera(
-        lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance, timeStart, timeEnd);
-}
-
 int main(int argc, char** argv)
 {
     // Todo: add a dials for these.
@@ -190,33 +124,8 @@ int main(int argc, char** argv)
     }
 
     /***** Setup Scene *****/
-    //rt::HitList world;
-
-    //auto material_ground = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.8, 0.8, 0.0));
-    //auto material_center = std::make_shared<rt::materials::Lambertian>(rt::color::rgb(0.7, 0.3, 0.3));
-    //auto material_left = std::make_shared<rt::materials::Dielectric>(1.5);
-    //auto material_right = std::make_shared<rt::materials::Metallic>(rt::color::rgb(0.8, 0.6, 0.2), 1.0);
-
-    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0, -100.5, -1.0), 100.0, material_ground));
-    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 0.0,    0.0, -1.0),   0.5, material_center));
-
-    //// "Hollow" glass sphere
-    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),   0.5, material_left));
-    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3(-1.0,    0.0, -1.0),  -0.4, material_left));
-
-    //world.add(std::make_shared<rt::shapes::Sphere>(rt::Point3( 1.0,    0.0, -1.0),   0.5, material_right));
-
-    //auto lookFrom = rt::Point3(3, 3, 2);
-    //auto lookAt = rt::Point3(0, 0, -1);
-    //auto viewUp = rt::Vec3(0, 1, 0);
-    //auto focusDistance = (lookFrom - lookAt).length();
-    //auto aperture = 0.2;
-    //auto aspectRatio = static_cast<double>(imageWidth) / static_cast<double>(imageHeight);
-    //Camera camera(lookFrom, lookAt, viewUp, aspectRatio, 20, aperture, focusDistance);
-
     auto aspectRatio = static_cast<double>(imageWidth) / static_cast<double>(imageHeight);
-    Scene scene;
-    createRandomScene(scene, aspectRatio, 0.0, 1.0);
+    Scene scene = RandomScene(aspectRatio, 0.0, 1.0);
 
     /***** Render *****/
     auto start = std::chrono::high_resolution_clock::now();
@@ -225,12 +134,12 @@ int main(int argc, char** argv)
     // split a single scan line over multiple threads at the moment.
     const unsigned threads = rt::clamp(numThreads, 1, imageHeight);
 
-    // Round up to next full scan line so we don't skip rendering any lines due to uneven divison.
+    // Round up to next full scan line so we don't skip rendering any lines due to uneven division.
     const unsigned linesPerThread = (static_cast<double>(imageHeight) / threads) + 1;
     auto threadPool = std::vector<std::thread>(threads);
     auto chunks = std::vector<std::shared_ptr<RenderChunk>>(threads);
 
-    // Render each set of lines in a separate thread, startin from the top.
+    // Render each set of lines in a separate thread, starting from the top.
     for (auto i = 0; i < threads; ++i) {
         auto chunkNum = threads - i - 1;
         auto yTop = (linesPerThread * (i + 1));

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../color.h"
-#include "../Material.h"
+#include "Material.h"
 
 namespace rt {
 namespace materials {

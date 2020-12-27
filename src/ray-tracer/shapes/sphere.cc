@@ -40,9 +40,33 @@ namespace shapes {
         rec.p = r.at(rec.t);
         auto outwardNormal = (rec.p - m_center) / m_radius;
         rec.setFaceNormal(r, outwardNormal);
+        getUV(outwardNormal, rec.u, rec.v);
         rec.material = m_material;
     
         return true;
+    }
+
+    bool Sphere::boundingBox(double t0, double t1, AABB& outBox) const
+    {
+        outBox = AABB(
+            m_center - Vec3(m_radius, m_radius, m_radius),
+            m_center + Vec3(m_radius, m_radius, m_radius));
+
+        return true;
+    }
+    
+    void Sphere::getUV(const Point3& p, double& u, double& v)
+    {
+        // p: a point on the surface of unit sphere, centered at the origin.
+        // u: returned value [0, 1] of the longitudinal position on the sphere.
+        // v: returned value [0, 1] of the latitudinal position on the sphere.
+        // (0, 0) maps to bottom left of texture
+
+        auto theta = std::acos(-p.y());
+        auto phi = std::atan2(-p.z(), p.x()) + rt::pi;
+
+        u = phi / (2 * rt::pi);
+        v = theta / pi;
     }
 } // namespace shapes
 } // namespace rt

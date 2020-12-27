@@ -32,6 +32,7 @@ namespace rt {
     double randDouble();
     
     inline double randDouble(double min, double max) { return min + (max - min) * randDouble(); }
+    inline int randInt(int min, int max) { return static_cast<int>(randDouble(min, max + 1)); }
 
     inline double clamp(double x, double min, double max) {
         if (x < min) return min;

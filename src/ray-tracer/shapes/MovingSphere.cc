@@ -40,10 +40,29 @@ namespace shapes {
 
     Point3 MovingSphere::center(double time) const
     {
+        // TODO: Probably more efficient to have constructor take
+        //   travelVec, or at least calculate it, so we don't do  it
+        //   every time here.
         auto dt = time - m_timeStart;
-        auto timeScale = dt / m_travelTime;
+        auto timeScale = dt / (m_timeEnd - m_timeStart);
+        auto travelVec = m_centerEnd - m_centerStart;
 
-        return m_centerStart + (m_travelVector * timeScale);
+        return m_centerStart + (travelVec * timeScale);
+    }
+
+    bool MovingSphere::boundingBox(double t0, double t1, AABB& outBox) const
+    {
+        AABB box0(
+            center(m_timeStart) - Vec3(m_radius, m_radius, m_radius),
+            center(m_timeStart) + Vec3(m_radius, m_radius, m_radius));
+
+        AABB box1(
+            center(m_timeEnd) - Vec3(m_radius, m_radius, m_radius),
+            center(m_timeEnd) + Vec3(m_radius, m_radius, m_radius));
+
+        outBox = AABB::surroundingBox(box0, box1);
+
+        return true;
     }
 }
 }
